@@ -22,7 +22,7 @@ public class MyFairLockImplementation {
 			                                                                
 		};
 		
-		IntStream.range(0,10).forEach(n -> new Thread(worker).start());          //Instantiating Thread objects usin Java8 Stream object.
+		IntStream.range(0,10).forEach(n -> new Thread(worker).start());          //Instantiating Thread objects using Java8 Stream object.
 		
 		try {TimeUnit.SECONDS.sleep(11);}
 		catch(InterruptedException e) {e.printStackTrace();}		
