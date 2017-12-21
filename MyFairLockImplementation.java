@@ -37,8 +37,7 @@ class Synchronizer{
 	private List<Flag> queue = new ArrayList<>(); 
                                                                              // List of each working thread flags,(representing the threads queue).	
 	//Locking monitor object.
-	synchronized void lock(Flag flag) {			
-		
+	synchronized void lock(Flag flag) {					
 		if(isLocked) queue.add(flag);
 			
 		while(isLocked || queue.contains(flag)) {                            // The condition to pass the lock is 		                                        
