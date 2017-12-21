@@ -12,16 +12,17 @@ public class MyFairLockImplementation {
 	public static void main(String[] args) {
 		
 		Runnable worker = () -> {		
-			Flag flag = new Flag();		                                     // Each Thread creates it's local flag object.
-			sync.lock(flag);                                                 // Invoking shared object lock method.
+			Flag flag = new Flag();		                                 // Each Thread creates it's local flag (token) object.
+			sync.lock(flag);                                                 // Invoking shared object's lock method.
 			
 			try {TimeUnit.SECONDS.sleep(1);}                                 // Critical section code.
 			catch(InterruptedException e) {e.printStackTrace();}
 			
-			sync.unlock();			
+			sync.unlock();			                                 //Once thread has passed the critical section it may "signal" to waiting threads.
+			                                                                
 		};
 		
-		IntStream.range(0,10).forEach(n -> new Thread(worker).start());
+		IntStream.range(0,10).forEach(n -> new Thread(worker).start());          //Instantiating Thread objects usin Java8 Stream object.
 		
 		try {TimeUnit.SECONDS.sleep(11);}
 		catch(InterruptedException e) {e.printStackTrace();}		
@@ -33,23 +34,23 @@ public class MyFairLockImplementation {
 //Locking class.
 class Synchronizer{
 	
-	private boolean isLocked;                                                // Synchronizer state.
-	private List<Flag> queue = new ArrayList<>(); 
-                                                                             // List of each working thread flags,(representing the threads queue).	
+	private boolean isLocked;                                                   // Synchronizer state.
+	private List<Flag> queue = new ArrayList<>();                               // Queue of threads waiting to get pass.	
+                                                                          
 	//Locking monitor object.
 	synchronized void lock(Flag flag) {					
 		if(isLocked) queue.add(flag);
 			
-		while(isLocked || queue.contains(flag)) {                            // The condition to pass the lock is 		                                        
-			try {wait();}                                                    //1.Lock must not be locked and  2. Thread's flag must not be exist in the "queue list" (Removed in unlock() method).
-			catch(InterruptedException e) {e.printStackTrace();}
+		while(isLocked || queue.contains(flag)) {                            // The condition to pass the get is 		                                        
+			try {wait();}                                                //1.Lock must not be locked and  			                                                         
+			catch(InterruptedException e) {e.printStackTrace();}         //2. Thread's flag must not exist in the "queue list" (Removed in unlock() method)
 		}
-		isLocked = true;                                                     //Each passing thread must denote that lock is locked.				          
+		isLocked = true;                                                     //Each passing thread must denote that lock is locked (meaning there is a working thread in critical section).				          
 	}
 	
 	//Releasing monitor object.
 	synchronized void unlock() {		
-		if(queue.size() > 0) queue.remove(queue.get(0));                      // Checking if "queue list aka flags" contains elements,if so removing the first one.
+		if(queue.size() > 0) queue.remove(queue.get(0));                      // Checking if there are more waiting Threads in the queue.If true remove first one.
 		isLocked = false;                                                     // Denoting that a lock has been released.
 		notifyAll();                                                          // Notifying all waiting elements.
 	}
